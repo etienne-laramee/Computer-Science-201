@@ -1,140 +1,152 @@
 import java.util.Arrays;
+import java.util.Scanner;
 
-/**
- * BinaryTree
- */
 class BinaryTree {
     private Node root = null;
 
-    // Default constructor
-    public BinaryTree() {
-    }
-
-    /**
-     * Binary tree constructor. Takes in an array of integers.
-     * @param data
-     */
+    // Constructor
     public BinaryTree(int[] data) {
-        // Find the middle value to be used as the root and put it first.
         Arrays.sort(data);
-        int middleIndex = data.length/2;
-        int tmp = data[0];
-        data[0] = data[middleIndex];
-        data[middleIndex] = tmp;
-
-        // For each data element, create a new node, then insert it into the tree.
-        for (int datum : data) {
-            this.AddNode(datum);
-        }
+        this.root = buildTree(data, 0, data.length - 1);
     }
 
-    /**
-     * AddNode: Adds a node to the tree from a given value
-     * 
-     * @param datum
-     */
-    public void AddNode(int datum) {
-        Node node = new Node(datum);
+    // Recursively builds a balanced tree from an ordered data set
+    private Node buildTree(int[] dataset, int start, int end) {
+        // Checks for a negative range, meaning we reached leaf
+        if (start > end) {
+            return null;
+        }
 
-        // If root is null, create new node and assign it as root.
-        if (null == this.root) {
-            this.root = node;
-        }
-        // Otherwise, add it to the existing tree, starting from root.
-        else {
-            try {
-                this.root.addNode(node);
-            } catch (AlreadyExistsException e) {
-                System.out.println("Value " + e.getValue() + " already exists. Node not added.");
-            }
-        }
+        // Find the middle of the data set to use as a parent
+        int middleIndex = (start + end) / 2;
+        Node node = new Node(dataset[middleIndex]);
+
+        // Recursively build the children
+        node.setLeft(buildTree(dataset, start, middleIndex - 1));
+        node.setRight(buildTree(dataset, middleIndex + 1, end));
+
+        return node;
+    }
+
+    public Node find(int value) {
+        return this.root.find(value);
+    }
+
+    public void remove(int value) {
+        this.root = Node.remove(this.root, value);
+    }
+
+    public void add(int value) {
+        this.root = Node.insertNode(this.root, value);
     }
 
     public void printInOrder() {
         this.root.printNodeInOrder();
     }
 
-    /**
-     * Node: Part of a tree. Can have up to 2 child nodes.
-     */
-    private class Node {
-        private int data;
-        private Node left;
-        private Node right;
-
-        // Constructor
-        public Node(int data) {
-            this.data = data;
-            this.right = null;
-            this.left = null;
-        }
-
-        /**
-         * addNode: Adds a new node to the tree
-         * @param node
-         * @throws AlreadyExistsException
-         */
-        public void addNode(Node node) throws AlreadyExistsException {
-            if (node.data < this.data) {
-                if (null != this.left) {
-                    this.left.addNode(node);
-                } else {
-                    this.left = node;
-                }
-            } else if (node.data > this.data) {
-                if (null != this.right) {
-                    this.right.addNode(node);
-                } else {
-                    this.right = node;
-                }
-            } else {
-                throw new AlreadyExistsException(node.data);
-            }
-        }
-
-        /**
-         * printNode: Print the node's value
-         */
-        public void printNode() {
-            System.out.print("[Data: " + this.data + "]");
-        }
-
-        /**
-         * printNodeInOrder: Print the node's own and child values in order.
-         */
-        public void printNodeInOrder() {
-            if (null != this.left) this.left.printNodeInOrder();
-            this.printNode();
-            if (null != this.right) this.right.printNodeInOrder();
-
-        }
+    public void printPreOrder() {
+        this.root.printNodePreOrder();
     }
 
-    /**
-     * Main function
-     */
+    public void printPostOrder() {
+        this.root.printNodePostOrder();
+    }
+
     public static void main(String[] args) {
         int[] defaultData = { 1, 2, 3, 4, 5, 6, 7 };
 
-        // Menu loop
+        // Main menu loop
+        Scanner scanner = new Scanner(System.in);
+        BinaryTree binaryTree = null;
+        boolean exit = false;
+        int choice = 0;
 
-        // Test
-        BinaryTree binaryTree = new BinaryTree(defaultData);
-        binaryTree.printInOrder();
-    }
-}
+        while (!exit) {
+            System.out.println("\nBinary Search Tree Menu:");
+            System.out.println("1. Create a binary search tree");
+            System.out.println("2. Add a node");
+            System.out.println("3. Delete a node");
+            System.out.println("4. Print nodes by InOrder");
+            System.out.println("5. Print nodes by PreOrder");
+            System.out.println("6. Print nodes by PostOrder");
+            System.out.println("7. Exit program");
+            System.out.print("Select an option: ");
 
-/**
- * AlreadyExistsException: Custom exception for when a node value already exists in the tree.
- */
-class AlreadyExistsException extends Exception {
-    private int value;
-    // Used for notifying when a new node already exists.
-    public AlreadyExistsException(int value) {
-        this.value = value;
-    }
+            // Scanner can throw exceptions if unsupported input is provided.
+            // Handle exceptions with a try/catch
+            try {
+                choice = scanner.nextInt();
+            } catch (Exception e) {
+                // If the scanner encounters an unsupported option, exit the program.
+                choice = 7;
+            }
 
-    public int getValue() {
-        return this.value;
+            switch (choice) {
+                case 1:
+                    // Create a new binary search tree with default values 1-7
+                    binaryTree = new BinaryTree(defaultData);
+                    System.out.println("Binary search tree created with values 1 to 7.");
+                    break;
+
+                case 2:
+                    if (binaryTree == null) {
+                        System.out.println("Please create a binary search tree first.");
+                        break;
+                    }
+                    System.out.print("Enter a value to add: ");
+                    int addValue = scanner.nextInt();
+                    binaryTree.add(addValue);
+                    System.out.println("Node " + addValue + " added.");
+                    break;
+
+                case 3:
+                    if (binaryTree == null) {
+                        System.out.println("Please create a binary search tree first.");
+                        break;
+                    }
+                    System.out.print("Enter a value to delete: ");
+                    int deleteValue = scanner.nextInt();
+                    binaryTree.remove(deleteValue);
+                    System.out.println("Node " + deleteValue + " deleted.");
+                    break;
+
+                case 4:
+                    if (binaryTree == null) {
+                        System.out.println("Please create a binary search tree first.");
+                        break;
+                    }
+                    System.out.print("InOrder Traversal: ");
+                    binaryTree.printInOrder();
+                    break;
+
+                case 5:
+                    if (binaryTree == null) {
+                        System.out.println("Please create a binary search tree first.");
+                        break;
+                    }
+                    System.out.print("PreOrder Traversal: ");
+                    binaryTree.printPreOrder();
+                    break;
+
+                case 6:
+                    if (binaryTree == null) {
+                        System.out.println("Please create a binary search tree first.");
+                        break;
+                    }
+                    System.out.print("PostOrder Traversal: ");
+                    binaryTree.printPostOrder();
+                    break;
+
+                case 7:
+                    exit = true;
+                    System.out.println("Exiting program. Goodbye!");
+                    break;
+
+                default:
+                    System.out.println("Invalid option. Please select a number between 1 and 7.");
+            }
+        }
+
+        scanner.close();
     }
 }
