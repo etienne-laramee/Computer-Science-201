@@ -48,7 +48,7 @@ public class Node {
         // We are looking for our target node to delete.
         // At this point, the object that called this instance
         // of the funcition is the parent node.
-        // What we return is waht will be referenced as a
+        // What we return is what will be referenced as a
         // right or left child node.
 
         // Target node is left or right?
