@@ -59,19 +59,19 @@ public class Node {
         }
         // We found our target node to delete
         else {
-            // Case 1: Node is a leaf (no children)
+            // Case 1: Target node is a leaf (no children)
             if (node.isLeaf()) {
                 return null;
             }
 
-            // Case 2: Node has 1 child
+            // Case 2: Target node has 1 child
             if (null == node.getLeft()) {
                 return node.getRight();
             } else if (null == node.getRight()) {
                 return node.getLeft();
             }
 
-            // Case 3: Node has 2 children
+            // Case 3: Target node has 2 children
             // Find smallest leaf from the bigger branch,
             // use it to replace this current node that needs ot be deleted
             // and then delete smallest leaf that we just found
