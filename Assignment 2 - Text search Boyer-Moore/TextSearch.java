@@ -9,18 +9,32 @@ public class TextSearch {
         this.text = text;
     }
 
-    public void displayText() {
-        System.out.println(this.text);
+    public int getLength() {
+        return this.text.length();
     }
 
-    public void search(String pattern) {
+    public char getCharacterAt(int index) {
+        return Character.toLowerCase(this.text.charAt(index));
+    }
+
+    // Display the whole input text. Wrap at 80 characters for better readability
+    public void displayText() {
+        System.out.println("\n" + this.text.replaceAll("(.{80})", "$1\n"));
+    }
+
+    // Search the pattern within the input text and display all the found indices.
+    // Also prints the input text with the found patterns enclosed in squared brackets.
+    public void search(Pattern pattern) {
+        // Search function
         List<Integer> list = searchBoyerMoore(pattern);
+
         String output = "";
         int counter = 0;
 
+        // Insert square brackets where patterns have been found
         for (int i = 0; i < this.text.length(); i++) {
             if (list.contains(i)) {
-                counter = pattern.length();
+                counter = pattern.getLength();
                 output += "[";
             }
 
@@ -35,87 +49,74 @@ public class TextSearch {
             }
         }
 
-        System.out.println(output);
+        // Wrap text for better readability
+        System.out.println("\n" + output.replaceAll("(.{80})", "$1\n"));
 
-        for (Integer i : list) {
-            System.out.println("Pattern match at index: " + i);
+        // Display summary
+        System.out.println("\n--------------------------------------------------------------------------------");
+        if (list.size() > 0) {
+            System.out.println("One or more match fount for pattern: " + pattern.toString());
+            for (Integer i : list) {
+                System.out.println("Pattern match at index: " + i);
+            }
+        } else {
+            System.out.println("No match found for pattern: " + pattern.toString());
         }
+        System.out.println("--------------------------------------------------------------------------------");
     }
 
-    private List<Integer> searchBoyerMoore(String pattern) {
-        boolean isBadCharacter;
-
-        int textLength = this.text.length();
-        int patternLength = pattern.length();
-        int patternEndIndex = (patternLength - 1);
-        
+    // Main algorithm
+    private List<Integer> searchBoyerMoore(Pattern pattern) {
         List<Integer> matchIndices = new ArrayList<Integer>();
-        
-        
-        // Main loop
-        int i = patternEndIndex;
-        while (i < textLength) {
-            isBadCharacter = true;
-            char character = Character.toLowerCase(this.text.charAt(i));
-            char patternChar;
 
-            // Start at the end of the pattern
-            int j = patternEndIndex;
+        int i = pattern.getLastIndex();
+        char character;
 
-            // DEBUG
-            printDebugOutput(this.text, pattern, i);
-            // DEBUG
+        // Loop through the whole text
+        while (i < this.getLength()) {
+            // For each character from the text, search if it
+            // is contained in the pattern and store their index
+            character = this.getCharacterAt(i);
+            List<Integer> matchingPatternIndices = pattern.contains(character);
 
-            // Bad Character Rule scan loop
-            // Scenario 1: move the pattern until match with character
-            while (j >= 0) {
-                // Compare the Bad Character with each of the pattern characters starting from the end
-                patternChar = Character.toLowerCase(pattern.charAt(j));
-
-                if (patternChar == character) {
-                    // If there is a match, stop there and at the next step, align the pattern with the text
-                    isBadCharacter = false;
-                    break;
-                } else {
-                    j--;
-                }
-            }
-
-            if (isBadCharacter) {
-                // Scenario 2: No match with character, move pattern past the character
-                i += patternLength;
+            if (matchingPatternIndices.isEmpty()) {
+                // If not, move past mismatch
             } else {
-                // Mismatch becomes a match
-                // Align pattern with matched character
-                i += (patternEndIndex - j);
+                // If yes
+                // Align each match and compare
+                for (int matchIndex : matchingPatternIndices) {
+                    // Align indices
+                    int textIndex = (i + pattern.getReverseIndex(matchIndex));
+                    int patternIndex = pattern.getLastIndex();
 
-                // Reset pattern starting index at the end
-                j = patternEndIndex;
+                    boolean isMatch = true;
 
-                // Compare pattern aligned with text
-                while (j >= 0 && i < textLength) {
-                    int textIndex = i - (patternEndIndex - j);
-                    char textChar = Character.toLowerCase(text.charAt(textIndex));
-                    patternChar = Character.toLowerCase(pattern.charAt(j));
-
-                    if (textChar == patternChar) {
-                        if (j > 0) {
-                            // If we have not scanned the whole pattern yet, continue with the next character
-                            j--;
+                    // Compare character by character between text and pattern
+                    while (patternIndex >= 0) {
+                        if (textIndex < this.getLength()
+                                && pattern.getCharacterAt(patternIndex) == this.getCharacterAt(textIndex)) {
+                            // Keep going
+                            if (patternIndex == 0) {
+                                break;
+                            } else {
+                                patternIndex--;
+                                textIndex--;
+                            }
                         } else {
-                            // If all the pattern characters match with the text, add the index to a list and
-                            // continue comparing with the rest of the text.
-                            matchIndices.add(textIndex);
-                            i += patternLength;
+                            isMatch = false;
+                            break;
                         }
-                    } else {
-                        // If no match, abandon the comparison and go back to scan with the bad character rule
-                        i += patternLength;
-                        break;
+                    }
+
+                    // If the whole pattern matched, add its index to the list
+                    if (isMatch) {
+                        matchIndices.add(textIndex);
                     }
                 }
             }
 
+            // Move past match/mismatch
+            i += pattern.getLength();
         }
 
         return matchIndices;
@@ -140,7 +141,8 @@ public class TextSearch {
         int choice = 0;
 
         while (!exit) {
-            System.out.println("\n--------------------------------------------------------------------------------");
+            System.out.println(
+                    "\n\n--------------------------------------------------------------------------------");
             System.out.println("Boyer-Moore Text Searching Algorithm Menu:");
             System.out.println("--------------------------------------------------------------------------------");
             System.out.println("1. Display the text");
@@ -151,14 +153,14 @@ public class TextSearch {
             // Scanner can throw exceptions if unsupported input is provided.
             // Handle exceptions with a try/catch
             try {
-                // Read a number
-                choice = scanner.nextInt();
+                // Get choice from user
+                choice = Integer.parseInt(scanner.next());
 
                 // Consume leftover new line if any
                 scanner.nextLine();
             } catch (Exception e) {
-                // If the scanner encounters an unsupported option, exit the program.
-                choice = 9;
+                // If the scanner encounters an unsupported option, go to default switch case.
+                choice = 999;
             }
 
             switch (choice) {
@@ -168,15 +170,25 @@ public class TextSearch {
 
                 case 2:
                     System.out.print("Enter a search term: ");
+
+                    // Read pattern from user
                     String pattern = scanner.nextLine();
+
+                    // Make sure pattern cannot be greater than input text
                     if (pattern.length() >= textSearch.text.length()) {
                         System.out.println("The search term should be shorter than the text to be searched: "
                                 + textSearch.text.length() + " characters");
                         break;
                     }
+
+                    // if pattern text is valid, go to search function
                     if (pattern.length() > 0) {
-                        textSearch.search(pattern);
+                        textSearch.search(new Pattern(pattern));
                     }
+
+                    System.out.println(
+                            "////////////////////////////////////////////////////////////////////////////////");
+
                     break;
 
                 case 3:
@@ -186,58 +198,9 @@ public class TextSearch {
 
                 default:
                     System.out.println("Invalid option. Please select a number between 1 and 3.");
-                    // Consume leftover new line if any
-                    scanner.nextLine();
             }
         }
 
         scanner.close();
-    }
-
-    public static void printDebugOutput(String text, String pattern, int i) {
-        // Ensure i is within bounds
-        if (i < 0 || i >= text.length()) {
-            System.out.println("Index i is out of bounds.");
-            return;
-        }
-
-        // Calculate starting point so that i is 10 characters from the start
-        int start = Math.max(0, i - 10);
-        int end = Math.min(text.length(), start + 80);
-
-        // Get the relevant substring and build the top line
-        String substring = text.substring(start, end);
-        StringBuilder topLine = new StringBuilder(substring);
-
-        // Calculate position relative to the substring
-        int relativePosition = i - start;
-
-        // Insert brackets around the character at i
-        topLine.insert(relativePosition, '[');
-        topLine.insert(relativePosition + 2, ']'); // +2 to account for the first bracket
-
-        // Ensure top line is exactly 80 characters
-        if (topLine.length() > 80) {
-            topLine.setLength(80);
-        } else {
-            while (topLine.length() < 80) {
-                topLine.append(" ");
-            }
-        }
-
-        // Calculate padding for pattern alignment
-        int patternEndPosition = relativePosition + 1; // After the enclosed character
-        int patternStartPosition = patternEndPosition - pattern.length() - 2; // -2 for the brackets
-        StringBuilder bottomLine = new StringBuilder(" ");
-
-        // Add padding to align the pattern
-        for (int j = 0; j <= patternStartPosition; j++) {
-            bottomLine.append(" ");
-        }
-        bottomLine.append(pattern);
-
-        // Output the result
-        System.out.println(topLine);
-        System.out.println(bottomLine);
     }
 }
