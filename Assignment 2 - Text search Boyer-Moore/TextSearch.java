@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 public class TextSearch {
     private String text;
@@ -14,8 +15,30 @@ public class TextSearch {
 
     public void search(String pattern) {
         List<Integer> list = searchBoyerMoore(pattern);
+        String output = "";
+        int counter = 0;
+
+        for (int i = 0; i < this.text.length(); i++) {
+            if (list.contains(i)) {
+                counter = pattern.length();
+                output += "[";
+            }
+
+            output += this.text.charAt(i);
+
+            if (counter > 0) {
+                counter--;
+                if (counter == 0) {
+                    output += "]";
+
+                }
+            }
+        }
+
+        System.out.println(output);
+
         for (Integer i : list) {
-            System.out.println("Match at index: " + i);
+            System.out.println("Pattern match at index: " + i);
         }
     }
 
@@ -28,8 +51,6 @@ public class TextSearch {
 
         // Main loop
         while (i < textLength) {
-            System.out.println(text);
-            System.out.println(" ".repeat(i - (patternLength-1)) + pattern);
             char character = this.text.charAt(i);
             int patternEndIndex = patternLength - 1;
             boolean isMatch = false;
@@ -40,7 +61,7 @@ public class TextSearch {
             // Scan loop
             while (j >= 0) {
                 // Compare character with each pattern characters starting from the end
-                if (pattern.charAt(j) != character) {
+                if (Character.toLowerCase(pattern.charAt(j)) != Character.toLowerCase(character)) {
                     j--;
                 } else {
                     isMatch = true;
@@ -52,16 +73,15 @@ public class TextSearch {
                 i += patternLength - j;
                 j = patternEndIndex;
 
-                System.out.println(text);
-                System.out.println(" ".repeat(i - (patternLength)) + pattern);
-
                 // Compare
-                while (j >= 0) {
-                    if (pattern.charAt(j) == text.charAt(i - (pattern.length() - j))) {
+                while (j >= 0 && i < textLength) {
+                    int textIndex = i - (pattern.length() - j);
+                    if (Character.toLowerCase(pattern.charAt(j)) == Character
+                            .toLowerCase(text.charAt(textIndex))) {
                         if (j > 0) {
                             j--;
                         } else {
-                            //System.out.println("Pattern match at index: " + (i - pattern.length()));
+                            // System.out.println("Pattern match at index: " + (i - pattern.length()));
                             matchIndices.add(i - pattern.length());
                             i += patternLength;
                         }
@@ -89,13 +109,55 @@ public class TextSearch {
                 "Pennsylvania Rhode Island South Carolina South Dakota " +
                 "Tennessee Texas Utah Vermont Virginia Washington " +
                 "West Virginia Wisconsin Wyoming";
-
-        //states = "California";
-
-        String pattern = "nia";
-
         TextSearch textSearch = new TextSearch(states);
-        textSearch.displayText();
-        textSearch.search(pattern);
+        Scanner scanner = new Scanner(System.in);
+
+        // Main menu loop
+        boolean exit = false;
+        int choice = 0;
+
+        while (!exit) {
+            System.out.println("\nBoyer-Moore Text Searching Algorithm Menu:");
+            System.out.println("1. Display the text");
+            System.out.println("2. Search");
+            System.out.println("3. Exit program");
+            System.out.print("Select an option: ");
+
+            // Scanner can throw exceptions if unsupported input is provided.
+            // Handle exceptions with a try/catch
+            try {
+                choice = scanner.nextInt();
+            } catch (Exception e) {
+                // If the scanner encounters an unsupported option, exit the program.
+                choice = 10;
+            }
+
+            switch (choice) {
+                case 1:
+                    // Create a new binary search tree with default values 1-7
+                    System.out.println("Binary search tree created with values 1 to 7.");
+                    break;
+
+                case 2:
+                    // Consume leftover new line
+                    scanner.nextLine();
+                    System.out.print("Enter a search term: ");
+                    String pattern = scanner.nextLine();
+                    if (pattern.length() > 0) {
+                        textSearch.search(pattern);
+                    }
+                    break;
+
+                case 3:
+                    exit = true;
+                    System.out.println("Exiting program. Goodbye!");
+                    break;
+
+                default:
+                    System.out.println("Invalid option. Please select a number between 1 and 3.");
+            }
+        }
+
+        scanner.close();
     }
 }
