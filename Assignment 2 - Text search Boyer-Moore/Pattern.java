@@ -4,7 +4,7 @@ import java.util.List;
 public class Pattern {
     private char[] pattern;
     private int length;
-    
+
     public Pattern(String pattern) {
         this.pattern = pattern.toCharArray();
         this.length = pattern.length();

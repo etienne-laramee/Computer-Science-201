@@ -23,7 +23,8 @@ public class TextSearch {
     }
 
     // Search the pattern within the input text and display all the found indices.
-    // Also prints the input text with the found patterns enclosed in squared brackets.
+    // Also prints the input text with the found patterns enclosed in squared
+    // brackets.
     public void search(Pattern pattern) {
         // Search function
         List<Integer> list = searchBoyerMoore(pattern);
